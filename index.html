@@ -6,32 +6,141 @@
 <title>Fres Shop</title>
 
 <style>
-body{margin:0;font-family:Arial;background:white;}
-header{
-background:black;color:white;padding:10px 20px;
-display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+body{
+margin:0;
+font-family: 'Segoe UI', sans-serif;
+background:#f5f5f5;
 }
-.logo{font-size:20px;font-weight:bold;cursor:pointer;}
-.nav-right{display:flex;gap:15px;align-items:center;flex-wrap:wrap;}
-.nav-right a{color:white;text-decoration:none;cursor:pointer;}
-.search-box input{padding:6px;border:none;border-radius:4px;}
-.container{padding:20px;max-width:1000px;margin:auto;}
-button{padding:10px;margin-top:5px;width:100%;background:black;color:white;border:none;cursor:pointer;}
-button:hover{background:gray;}
-.card{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:8px;}
-.delete-btn{background:red;}
-.edit-btn{background:orange;}
-.logout-btn{background:blue;margin-top:10px;}
-img{max-width:100%;border-radius:6px;margin-top:10px;}
-.product-grid{display:grid;grid-template-columns:1fr;gap:15px;}
-@media (min-width:768px){.product-grid{grid-template-columns:repeat(3,1fr);}}
 
-/* Sepet popup */
-.cart-popup{
-display:none;position:absolute;right:20px;top:60px;
-background:white;color:black;width:300px;
-border:1px solid #ccc;padding:15px;border-radius:8px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);z-index:1000;
+/* NAVBAR */
+header{
+background:#111;
+color:white;
+padding:12px 25px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+flex-wrap:wrap;
+}
+
+.logo{font-size:22px;font-weight:bold;}
+
+.nav-right{
+display:flex;
+gap:20px;
+align-items:center;
+}
+
+.nav-right a{
+color:white;
+text-decoration:none;
+cursor:pointer;
+font-weight:500;
+}
+
+.search-box input{
+padding:8px 12px;
+border-radius:6px;
+border:none;
+width:220px;
+}
+
+/* CONTAINER */
+.container{
+max-width:1200px;
+margin:auto;
+padding:30px;
+}
+
+.product-grid{
+display:grid;
+grid-template-columns:1fr;
+gap:20px;
+}
+
+@media(min-width:768px){
+.product-grid{
+grid-template-columns:repeat(3,1fr);
+}
+}
+
+/* CARD */
+.card{
+background:white;
+border-radius:12px;
+padding:18px;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+transition:0.2s;
+}
+
+.card:hover{
+transform:translateY(-3px);
+}
+
+.card img{
+width:100%;
+border-radius:10px;
+margin-top:10px;
+}
+
+button{
+width:100%;
+padding:10px;
+border:none;
+border-radius:8px;
+margin-top:8px;
+cursor:pointer;
+font-weight:500;
+}
+
+.primary{background:#111;color:white;}
+.edit{background:#f4a100;color:white;}
+.delete{background:#e53935;color:white;}
+
+/* MODAL */
+.modal{
+display:none;
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.5);
+justify-content:center;
+align-items:center;
+z-index:1000;
+}
+
+.modal-content{
+background:white;
+width:90%;
+max-width:400px;
+padding:25px;
+border-radius:14px;
+box-shadow:0 8px 25px rgba(0,0,0,0.2);
+position:relative;
+}
+
+.modal-content h3{
+margin-top:0;
+}
+
+.modal-content input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+.close{
+position:absolute;
+right:15px;
+top:10px;
+cursor:pointer;
+font-size:20px;
+}
+
+.admin-panel{
+margin-top:20px;
 }
 </style>
 </head>
@@ -42,77 +151,88 @@ box-shadow:0 5px 15px rgba(0,0,0,0.2);z-index:1000;
 <div class="logo">Fres Shop</div>
 
 <div class="search-box">
-<input type="text" id="searchInput" placeholder="Ürün ara..." 
-onkeyup="searchProduct()" 
-onkeydown="if(event.key==='Enter'){this.value='';showProducts();}">
+<input type="text" id="searchInput" placeholder="Ürün ara..." onkeyup="searchProduct()">
 </div>
 
 <div class="nav-right">
-<a onclick="toggleCart()">🛒 Sepet (<span id="cartCount">0</span>)</a>
+<a onclick="openCart()">🛒 Sepet (<span id="cartCount">0</span>)</a>
 <a onclick="openRegister()">👤 Üye Ol</a>
 <a onclick="openAdmin()">🔐 Admin</a>
 </div>
 </header>
 
-<div id="cartPopup" class="cart-popup">
-<h4>Sepet</h4>
-<div id="cartList"></div>
-<button onclick="fakePayment()">Ödeme Yap</button>
-</div>
-
 <div class="container">
-
-<h3>Ürünler</h3>
+<h2>Ürünler</h2>
 <div id="productList" class="product-grid"></div>
-
-<div id="adminPanel" style="display:none;" class="card">
-<h3>Admin Paneli</h3>
-
-<input type="text" id="pName" placeholder="Ürün Adı"
-onkeydown="if(event.key==='Enter'){addProduct();this.value='';}">
-<input type="text" id="pPrice" placeholder="Fiyat"
-onkeydown="if(event.key==='Enter'){addProduct();this.value='';}">
-<input type="text" id="pImage" placeholder="Görsel URL"
-onkeydown="if(event.key==='Enter'){addProduct();this.value='';}">
-
-<button onclick="addProduct()">Kaydet</button>
-<button class="logout-btn" onclick="adminLogout()">Admin Çıkış</button>
 </div>
 
+<!-- REGISTER MODAL -->
+<div class="modal" id="registerModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('registerModal')">&times;</span>
+<h3>Üye Ol</h3>
+<input type="text" id="regName" placeholder="İsim">
+<button class="primary" onclick="register()">Kayıt Ol</button>
+</div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal" id="adminModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('adminModal')">&times;</span>
+<h3>Admin Giriş</h3>
+<input type="text" id="adminUser" placeholder="Kullanıcı Adı">
+<input type="password" id="adminPass" placeholder="Şifre">
+<button class="primary" onclick="adminLogin()">Giriş Yap</button>
+
+<div id="adminPanel" class="admin-panel" style="display:none;">
+<h4>Ürün Ekle</h4>
+<input type="text" id="pName" placeholder="Ürün Adı">
+<input type="text" id="pPrice" placeholder="Fiyat">
+<input type="text" id="pImage" placeholder="Görsel URL">
+<button class="primary" onclick="addProduct()">Kaydet</button>
+</div>
+
+</div>
+</div>
+
+<!-- CART MODAL -->
+<div class="modal" id="cartModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('cartModal')">&times;</span>
+<h3>Sepet</h3>
+<div id="cartList"></div>
+<button class="primary" onclick="fakePayment()">Ödeme Yap</button>
+</div>
 </div>
 
 <script>
-let users = JSON.parse(localStorage.getItem("users")) || [];
 let products = JSON.parse(localStorage.getItem("products")) || [];
 let cart = [];
-let editIndex = null;
 
-function openRegister(){
-let name = prompt("İsim:");
-if(name){
-users.push({name:name});
-localStorage.setItem("users",JSON.stringify(users));
+function openRegister(){registerModal.style.display="flex";}
+function openAdmin(){adminModal.style.display="flex";}
+function openCart(){cartModal.style.display="flex";}
+function closeModal(id){document.getElementById(id).style.display="none";}
+
+function register(){
+if(regName.value){
 alert("Kayıt başarılı");
+regName.value="";
+closeModal("registerModal");
 }
 }
 
-function openAdmin(){
-let user = prompt("Admin Kullanıcı Adı:");
-let pass = prompt("Admin Şifre:");
-if(user==="admin" && pass==="1234"){
+function adminLogin(){
+if(adminUser.value==="admin" && adminPass.value==="1234"){
 adminPanel.style.display="block";
 }else{alert("Hatalı giriş");}
-}
-
-function adminLogout(){
-adminPanel.style.display="none";
+adminUser.value="";adminPass.value="";
 }
 
 function addProduct(){
 if(!pName.value || !pPrice.value) return;
-let product={name:pName.value,price:pPrice.value,image:pImage.value};
-if(editIndex!==null){products[editIndex]=product;editIndex=null;}
-else{products.push(product);}
+products.push({name:pName.value,price:pPrice.value,image:pImage.value});
 localStorage.setItem("products",JSON.stringify(products));
 showProducts();
 pName.value="";pPrice.value="";pImage.value="";
@@ -128,9 +248,8 @@ productList.innerHTML+=`
 <b>${p.name}</b><br>
 ${p.price} TL
 ${p.image?`<img src="${p.image}">`:""}
-<button onclick="addToCart(${i})">Sepete Ekle</button>
-<button class="edit-btn" onclick="editProduct(${i})">Düzenle</button>
-<button class="delete-btn" onclick="deleteProduct(${i})">Sil</button>
+<button class="primary" onclick="addToCart(${i})">Sepete Ekle</button>
+<button class="delete" onclick="deleteProduct(${i})">Sil</button>
 </div>`;
 });
 }
@@ -141,20 +260,8 @@ localStorage.setItem("products",JSON.stringify(products));
 showProducts();
 }
 
-function editProduct(i){
-pName.value=products[i].name;
-pPrice.value=products[i].price;
-pImage.value=products[i].image;
-editIndex=i;
-}
-
 function addToCart(i){
 cart.push(products[i]);
-updateCart();
-}
-
-function removeFromCart(i){
-cart.splice(i,1);
 updateCart();
 }
 
@@ -164,15 +271,15 @@ cart.forEach((c,i)=>{
 cartList.innerHTML+=`
 <div class="card">
 ${c.name} - ${c.price} TL
-<button class="delete-btn" onclick="removeFromCart(${i})">Çıkar</button>
+<button class="delete" onclick="removeFromCart(${i})">Çıkar</button>
 </div>`;
 });
 cartCount.innerText=cart.length;
 }
 
-function toggleCart(){
-cartPopup.style.display=
-cartPopup.style.display==="block"?"none":"block";
+function removeFromCart(i){
+cart.splice(i,1);
+updateCart();
 }
 
 function fakePayment(){
@@ -180,6 +287,7 @@ if(cart.length===0){alert("Sepet boş");return;}
 alert("Ödeme başarılı (Sahte ödeme)");
 cart=[];
 updateCart();
+closeModal("cartModal");
 }
 
 function searchProduct(){
