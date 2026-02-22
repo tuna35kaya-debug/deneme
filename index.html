@@ -12,7 +12,7 @@
 body{margin:0;font-family:'Segoe UI',sans-serif;background:#f5f5f5;}
 header{background:#111;color:white;padding:12px 25px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;}
 .logo{font-size:22px;font-weight:bold;}
-.nav-right{display:flex;gap:20px;align-items:center;}
+.nav-right{display:flex;gap:20px;align-items:center;flex-wrap:wrap;}
 .nav-right a{color:white;text-decoration:none;cursor:pointer;}
 .search-box input{padding:8px;border:none;border-radius:6px;}
 .container{max-width:1200px;margin:auto;padding:30px;}
@@ -36,12 +36,15 @@ button{width:100%;padding:10px;border:none;border-radius:8px;margin-top:8px;curs
 
 <header>
 <div class="logo">Fres Shop</div>
+
 <div class="search-box">
 <input type="text" id="searchInput" placeholder="Ürün ara..." onkeyup="searchProduct()">
 </div>
+
 <div class="nav-right">
 <a onclick="openCart()">🛒 Sepet (<span id="cartCount">0</span>)</a>
-<a onclick="openRegister()">👤 Üye Ol</a>
+<a onclick="openRegister()">📝 Kayıt Ol</a>
+<a onclick="openLogin()">🔑 Giriş Yap</a>
 <a onclick="openAdmin()">🔐 Admin</a>
 </div>
 </header>
@@ -55,10 +58,21 @@ button{width:100%;padding:10px;border:none;border-radius:8px;margin-top:8px;curs
 <div class="modal" id="registerModal">
 <div class="modal-content">
 <span class="close" onclick="closeModal('registerModal')">&times;</span>
-<h3>Üye Ol</h3>
+<h3>Kayıt Ol</h3>
 <input type="text" id="regName" placeholder="Kullanıcı Adı">
 <input type="password" id="regPass" placeholder="Şifre">
 <button class="primary" onclick="register()">Kayıt Ol</button>
+</div>
+</div>
+
+<!-- LOGIN -->
+<div class="modal" id="loginModal">
+<div class="modal-content">
+<span class="close" onclick="closeModal('loginModal')">&times;</span>
+<h3>Giriş Yap</h3>
+<input type="text" id="loginName" placeholder="Kullanıcı Adı">
+<input type="password" id="loginPass" placeholder="Şifre">
+<button class="primary" onclick="login()">Giriş Yap</button>
 </div>
 </div>
 
@@ -104,6 +118,7 @@ let currentUser = null;
 let isAdmin = false;
 
 function openRegister(){registerModal.style.display="flex";}
+function openLogin(){loginModal.style.display="flex";}
 function openAdmin(){adminModal.style.display="flex";}
 function openCart(){cartModal.style.display="flex";}
 function closeModal(id){document.getElementById(id).style.display="none";}
@@ -112,10 +127,21 @@ function register(){
 if(!regName.value || !regPass.value) return;
 users.push({name:regName.value,pass:regPass.value});
 localStorage.setItem("users",JSON.stringify(users));
-currentUser=regName.value;
-alert("Kayıt başarılı.");
+alert("Kayıt başarılı!");
 regName.value="";regPass.value="";
 closeModal("registerModal");
+}
+
+function login(){
+let user = users.find(u=>u.name===loginName.value && u.pass===loginPass.value);
+if(user){
+currentUser=user.name;
+alert("Giriş başarılı!");
+closeModal("loginModal");
+}else{
+alert("Hatalı bilgiler");
+}
+loginName.value="";loginPass.value="";
 }
 
 function adminLogin(){
@@ -176,8 +202,8 @@ showProducts();
 
 function addToCart(i){
 if(!currentUser){
-alert("Sepete eklemek için üye olmalısın!");
-openRegister();
+alert("Sepete eklemek için giriş yapmalısın!");
+openLogin();
 return;
 }
 cart.push(products[i]);
