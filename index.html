@@ -11,41 +11,28 @@ header{
 background:black;color:white;padding:10px 20px;
 display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
 }
-.logo{font-size:20px;font-weight:bold;}
+.logo{font-size:20px;font-weight:bold;cursor:pointer;}
 .nav-right{display:flex;gap:15px;align-items:center;flex-wrap:wrap;}
 .nav-right a{color:white;text-decoration:none;cursor:pointer;}
 .search-box input{padding:6px;border:none;border-radius:4px;}
 .container{padding:20px;max-width:1000px;margin:auto;}
-input,button{padding:10px;margin:5px 0;width:100%;box-sizing:border-box;}
-button{background:black;color:white;border:none;cursor:pointer;}
+button{padding:10px;margin-top:5px;width:100%;background:black;color:white;border:none;cursor:pointer;}
 button:hover{background:gray;}
 .card{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:8px;}
-.admin-panel{background:#f2f2f2;padding:15px;margin-top:20px;border-radius:10px;}
-.delete-btn{background:red;margin-top:5px;}
-.edit-btn{background:orange;margin-top:5px;}
+.delete-btn{background:red;}
+.edit-btn{background:orange;}
 .logout-btn{background:blue;margin-top:10px;}
 img{max-width:100%;border-radius:6px;margin-top:10px;}
 .product-grid{display:grid;grid-template-columns:1fr;gap:15px;}
-@media (min-width:768px){
-.product-grid{grid-template-columns:repeat(3,1fr);}
-}
+@media (min-width:768px){.product-grid{grid-template-columns:repeat(3,1fr);}}
 
-/* Sepet Popup */
+/* Sepet popup */
 .cart-popup{
-display:none;
-position:absolute;
-right:20px;
-top:60px;
-background:white;
-color:black;
-width:300px;
-border:1px solid #ccc;
-padding:15px;
-border-radius:8px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-z-index:1000;
+display:none;position:absolute;right:20px;top:60px;
+background:white;color:black;width:300px;
+border:1px solid #ccc;padding:15px;border-radius:8px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);z-index:1000;
 }
-.cart-popup h4{margin-top:0;}
 </style>
 </head>
 
@@ -55,13 +42,15 @@ z-index:1000;
 <div class="logo">Fres Shop</div>
 
 <div class="search-box">
-<input type="text" id="searchInput" placeholder="Ürün ara..." onkeyup="searchProduct()">
+<input type="text" id="searchInput" placeholder="Ürün ara..." 
+onkeyup="searchProduct()" 
+onkeydown="if(event.key==='Enter'){this.value='';showProducts();}">
 </div>
 
 <div class="nav-right">
 <a onclick="toggleCart()">🛒 Sepet (<span id="cartCount">0</span>)</a>
-<a href="#regName">👤 Üye Ol</a>
-<a href="#adminUser">🔐 Admin</a>
+<a onclick="openRegister()">👤 Üye Ol</a>
+<a onclick="openAdmin()">🔐 Admin</a>
 </div>
 </header>
 
@@ -75,23 +64,19 @@ z-index:1000;
 
 <h3>Ürünler</h3>
 <div id="productList" class="product-grid"></div>
-<div id="adminPanel" style="display:none;" class="admin-panel">
 
+<div id="adminPanel" style="display:none;" class="card">
 <h3>Admin Paneli</h3>
 
-<h4>Ürün Ekle / Düzenle</h4>
-<input type="text" id="pName" placeholder="Ürün Adı">
-<input type="text" id="pPrice" placeholder="Fiyat">
-<input type="text" id="pImage" placeholder="Görsel URL">
+<input type="text" id="pName" placeholder="Ürün Adı"
+onkeydown="if(event.key==='Enter'){addProduct();this.value='';}">
+<input type="text" id="pPrice" placeholder="Fiyat"
+onkeydown="if(event.key==='Enter'){addProduct();this.value='';}">
+<input type="text" id="pImage" placeholder="Görsel URL"
+onkeydown="if(event.key==='Enter'){addProduct();this.value='';}">
+
 <button onclick="addProduct()">Kaydet</button>
-
-<hr>
-
-<h4>Kayıtlı Üyeler</h4>
-<div id="userList"></div>
-
 <button class="logout-btn" onclick="adminLogout()">Admin Çıkış</button>
-
 </div>
 
 </div>
@@ -102,18 +87,20 @@ let products = JSON.parse(localStorage.getItem("products")) || [];
 let cart = [];
 let editIndex = null;
 
-function register(){
-if(regName.value && regUser.value && regPass.value){
-users.push({name:regName.value,user:regUser.value});
+function openRegister(){
+let name = prompt("İsim:");
+if(name){
+users.push({name:name});
 localStorage.setItem("users",JSON.stringify(users));
-alert("Kayıt başarılı!");
+alert("Kayıt başarılı");
 }
 }
 
-function adminLogin(){
-if(adminUser.value==="admin" && adminPass.value==="1234"){
+function openAdmin(){
+let user = prompt("Admin Kullanıcı Adı:");
+let pass = prompt("Admin Şifre:");
+if(user==="admin" && pass==="1234"){
 adminPanel.style.display="block";
-showUsers();
 }else{alert("Hatalı giriş");}
 }
 
@@ -121,31 +108,11 @@ function adminLogout(){
 adminPanel.style.display="none";
 }
 
-function showUsers(){
-userList.innerHTML="";
-users.forEach((u,i)=>{
-userList.innerHTML+=`
-<div class="card">
-${u.name} (${u.user})
-<button class="delete-btn" onclick="deleteUser(${i})">Sil</button>
-</div>`;
-});
-}
-
-function deleteUser(i){
-users.splice(i,1);
-localStorage.setItem("users",JSON.stringify(users));
-showUsers();
-}
-
 function addProduct(){
+if(!pName.value || !pPrice.value) return;
 let product={name:pName.value,price:pPrice.value,image:pImage.value};
-if(editIndex!==null){
-products[editIndex]=product;
-editIndex=null;
-}else{
-products.push(product);
-}
+if(editIndex!==null){products[editIndex]=product;editIndex=null;}
+else{products.push(product);}
 localStorage.setItem("products",JSON.stringify(products));
 showProducts();
 pName.value="";pPrice.value="";pImage.value="";
@@ -224,4 +191,3 @@ showProducts();
 
 </body>
 </html>
-
