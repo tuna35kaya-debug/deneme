@@ -6,70 +6,20 @@
 <title>Tuna Shop</title>
 
 <style>
-body {
-    margin:0;
-    font-family: Arial, sans-serif;
-    background:white;
-}
-
-header {
-    background:black;
-    color:white;
-    padding:15px;
-    text-align:center;
-}
-
-.container {
-    padding:20px;
-    max-width:1000px;
-    margin:auto;
-}
-
-input, button {
-    padding:10px;
-    margin:5px 0;
-    width:100%;
-    box-sizing:border-box;
-}
-
-button {
-    background:black;
-    color:white;
-    border:none;
-    cursor:pointer;
-}
-
-button:hover {
-    background:gray;
-}
-
-.card {
-    border:1px solid #ddd;
-    padding:15px;
-    margin:10px 0;
-    border-radius:8px;
-}
-
-.admin-panel {
-    background:#f2f2f2;
-    padding:15px;
-    margin-top:20px;
-    border-radius:10px;
-}
-
-.delete-btn {
-    background:red;
-    margin-top:10px;
-}
-
-@media (min-width:768px) {
-    .flex {
-        display:flex;
-        gap:20px;
-    }
-    .flex > div {
-        flex:1;
-    }
+body{margin:0;font-family:Arial;background:white;}
+header{background:black;color:white;padding:15px;text-align:center;}
+.container{padding:20px;max-width:1000px;margin:auto;}
+input,button{padding:10px;margin:5px 0;width:100%;box-sizing:border-box;}
+button{background:black;color:white;border:none;cursor:pointer;}
+button:hover{background:gray;}
+.card{border:1px solid #ddd;padding:15px;margin:10px 0;border-radius:8px;}
+.admin-panel{background:#f2f2f2;padding:15px;margin-top:20px;border-radius:10px;}
+.delete-btn{background:red;margin-top:5px;}
+.edit-btn{background:orange;margin-top:5px;}
+.logout-btn{background:blue;margin-top:10px;}
+img{max-width:100%;border-radius:6px;margin-top:10px;}
+@media (min-width:768px){
+.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;}
 }
 </style>
 </head>
@@ -81,6 +31,15 @@ button:hover {
 </header>
 
 <div class="container">
+
+<h3>Ürünler</h3>
+<div id="productList" class="product-grid"></div>
+
+<h3>Sepet</h3>
+<div id="cartList"></div>
+<button onclick="fakePayment()">Ödeme Yap</button>
+
+<hr>
 
 <h3>Üye Ol</h3>
 <input type="text" id="regName" placeholder="İsim">
@@ -96,67 +55,139 @@ button:hover {
 <button onclick="adminLogin()">Giriş Yap</button>
 
 <div id="adminPanel" style="display:none;" class="admin-panel">
+
 <h3>Admin Paneli</h3>
-<p><b>Kayıtlı Üyeler:</b></p>
+
+<h4>Ürün Ekle / Düzenle</h4>
+<input type="text" id="pName" placeholder="Ürün Adı">
+<input type="text" id="pPrice" placeholder="Fiyat">
+<input type="text" id="pImage" placeholder="Görsel URL">
+<button onclick="addProduct()">Kaydet</button>
+
+<hr>
+
+<h4>Kayıtlı Üyeler</h4>
 <div id="userList"></div>
+
+<button class="logout-btn" onclick="adminLogout()">Admin Çıkış</button>
+
 </div>
 
 </div>
 
 <script>
 let users = JSON.parse(localStorage.getItem("users")) || [];
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let cart = [];
+let editIndex = null;
 
 function register(){
-    let name = document.getElementById("regName").value;
-    let user = document.getElementById("regUser").value;
-    let pass = document.getElementById("regPass").value;
-
-    if(name && user && pass){
-        users.push({name, user});
-        localStorage.setItem("users", JSON.stringify(users));
-        alert("Kayıt başarılı!");
-    } else {
-        alert("Tüm alanları doldur!");
-    }
+if(regName.value && regUser.value && regPass.value){
+users.push({name:regName.value,user:regUser.value});
+localStorage.setItem("users",JSON.stringify(users));
+alert("Kayıt başarılı!");
+}
 }
 
 function adminLogin(){
-    let user = document.getElementById("adminUser").value;
-    let pass = document.getElementById("adminPass").value;
+if(adminUser.value==="admin" && adminPass.value==="1234"){
+adminPanel.style.display="block";
+showUsers();
+}
+else{alert("Hatalı giriş");}
+}
 
-    if(user === "admin" && pass === "1234"){
-        document.getElementById("adminPanel").style.display = "block";
-        showUsers();
-    } else {
-        alert("Hatalı giriş!");
-    }
+function adminLogout(){
+adminPanel.style.display="none";
 }
 
 function showUsers(){
-    let list = document.getElementById("userList");
-    list.innerHTML = "";
-
-    if(users.length === 0){
-        list.innerHTML = "Henüz üye yok.";
-        return;
-    }
-
-    users.forEach((u, index) => {
-        list.innerHTML += `
-        <div class="card">
-            <b>İsim:</b> ${u.name}<br>
-            <b>Kullanıcı:</b> ${u.user}
-            <button class="delete-btn" onclick="deleteUser(${index})">Üyeyi Sil</button>
-        </div>
-        `;
-    });
+userList.innerHTML="";
+users.forEach((u,i)=>{
+userList.innerHTML+=`
+<div class="card">
+${u.name} (${u.user})
+<button class="delete-btn" onclick="deleteUser(${i})">Sil</button>
+</div>`;
+});
 }
 
-function deleteUser(index){
-    users.splice(index,1);
-    localStorage.setItem("users", JSON.stringify(users));
-    showUsers();
+function deleteUser(i){
+users.splice(i,1);
+localStorage.setItem("users",JSON.stringify(users));
+showUsers();
 }
+
+function addProduct(){
+let product={name:pName.value,price:pPrice.value,image:pImage.value};
+if(editIndex!==null){
+products[editIndex]=product;
+editIndex=null;
+}else{
+products.push(product);
+}
+localStorage.setItem("products",JSON.stringify(products));
+showProducts();
+pName.value="";pPrice.value="";pImage.value="";
+}
+
+function showProducts(){
+productList.innerHTML="";
+products.forEach((p,i)=>{
+productList.innerHTML+=`
+<div class="card">
+<b>${p.name}</b><br>
+${p.price} TL
+${p.image ? `<img src="${p.image}">`:""}
+<button onclick="addToCart(${i})">Sepete Ekle</button>
+<button class="edit-btn" onclick="editProduct(${i})">Düzenle</button>
+<button class="delete-btn" onclick="deleteProduct(${i})">Sil</button>
+</div>`;
+});
+}
+
+function deleteProduct(i){
+products.splice(i,1);
+localStorage.setItem("products",JSON.stringify(products));
+showProducts();
+}
+
+function editProduct(i){
+pName.value=products[i].name;
+pPrice.value=products[i].price;
+pImage.value=products[i].image;
+editIndex=i;
+}
+
+function addToCart(i){
+cart.push(products[i]);
+showCart();
+}
+
+function showCart(){
+cartList.innerHTML="";
+cart.forEach((c,i)=>{
+cartList.innerHTML+=`
+<div class="card">
+${c.name} - ${c.price} TL
+<button class="delete-btn" onclick="removeFromCart(${i})">Çıkar</button>
+</div>`;
+});
+}
+
+function removeFromCart(i){
+cart.splice(i,1);
+showCart();
+}
+
+function fakePayment(){
+if(cart.length===0){alert("Sepet boş");return;}
+alert("Ödeme başarılı (Sahte ödeme ekranı)");
+cart=[];
+showCart();
+}
+
+showProducts();
 </script>
 
 </body>
